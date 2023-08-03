@@ -1,0 +1,44 @@
+timeOfLastBuild: 18.06.2020:09:58:44
+buildTime: 43.0 s
+githubRepo: https://github.com/fredex42/smartbackup#refs/heads/master
+Number of build steps: 2
+
+Step number: 1
+Name: Build and test
+
+Name: plugin.docker.imageId, Value: golang:1.13-buster
+Name: script.content, Value: bash -e ./cibuild.sh
+Name: teamcity.step.mode, Value: default
+Name: use.custom.script, Value: true
+
+
+Step number: 2
+Name: Package and upload
+
+Name: script.content, Value: /bin/bash -e
+
+whoami
+
+sudo -S /usr/local/bin/awsconfig_cleanup.sh
+
+unset AWS_ACCESS_KEY_ID
+unset AWS_SECRET_ACCESS_KEY
+
+export AWS_CONFIG_FILE=$(pwd)/temp-credentials.conf
+cat > temp-credentials.conf << EOF
+[profile multimedia-crossaccount]
+role_arn = arn:aws:iam::855023211239:role/deploytools-imagepull
+region = eu-west-1
+credential_source = Ec2InstanceMetadata
+EOF
+
+export AWS_PROFILE=multimedia-crossaccount
+
+
+bash -e ./cipackage.sh
+Name: teamcity.step.mode, Value: default
+Name: use.custom.script, Value: true
+
+
+languages:
+buildNumber: 28
